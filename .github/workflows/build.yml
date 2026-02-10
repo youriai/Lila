@@ -18,7 +18,10 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt update
-          sudo apt install -y libx11-dev
+          sudo apt install -y \ 
+            libx11-dev \
+            libxrandr-dev \
+            xorg-dev
 
       - name: Configure CMake
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
