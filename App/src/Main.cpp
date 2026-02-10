@@ -39,7 +39,7 @@ struct Tag {
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f,  0.0f);
-f32 cameraSpeed = 0.05;
+f32 cameraSpeed = 0.05f;
 
 void keyEventFunction(Lila::KeyEvent event) {
     if(event.key == 65) // A
@@ -75,9 +75,9 @@ void mousePositionEventFunction(Lila::MousePositionEvent event) {
     yaw += offsetX;
     pitch += offsetY;
 
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.x = static_cast<f32>(cos(glm::radians(yaw)) * cos(glm::radians(pitch)));
+    direction.y = static_cast<f32>(sin(glm::radians(pitch)));
+    direction.z = static_cast<f32>(sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
 
     cameraFront = glm::normalize(direction);
 }
