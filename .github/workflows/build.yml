@@ -1,4 +1,4 @@
-name: Engine Build
+name: Engine Build Check
 
 on:
   push:
