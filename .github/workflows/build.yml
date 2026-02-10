@@ -1,0 +1,21 @@
+name: Engine Build
+
+on: push
+
+jobs:
+  build:
+    name: ${{ matrix.os }} (${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [Ubuntu-latest, Windows-latest]
+        config: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      - name: Build Engine
+        run: cmake --build build --config ${{ matrix.config }}
