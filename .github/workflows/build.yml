@@ -19,7 +19,7 @@ jobs:
         run: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
           sudo apt-get update
-          sudo apt-get install -y g++-13 libx11-dev libxrandr-dev xvfb
+          sudo apt-get install -y g++-13 xorg-dev libgl1-mesa-dev
           echo "CC=gcc-13" >> $GITHUB_ENV
           echo "CXX=g++-13" >> $GITHUB_ENV
 
