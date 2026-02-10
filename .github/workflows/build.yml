@@ -17,10 +17,15 @@ jobs:
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
         run: |
-          sudo apt update
-          sudo apt install -y \ 
+          sudo apt-get update
+          sudo apt-get install -y \
             libx11-dev \
             libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
             xorg-dev
 
       - name: Configure CMake
