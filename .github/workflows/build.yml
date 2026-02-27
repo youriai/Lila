@@ -2,7 +2,7 @@ name: Engine Build Check
 
 on:
   push:
-    branches: [ "test/*", "master" ]
+    branches: [ "feat/*", "master" ]
   pull_request:
     branches: [ "master" ]
 
