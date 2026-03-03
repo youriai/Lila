@@ -2,14 +2,14 @@ name: Engine Build Check
 
 on:
   push:
-    branches: ["master", "dev"]
+    branches: ["master", "dev", "feat/*"]
   pull_request:
     branches: ["master", "dev"]
   workflow_dispatch:
 
 jobs:
   sanitize:
-    name: Sanzite
+    name: sanitize
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -20,10 +20,10 @@ jobs:
           sudo apt-get install -y g++ xorg-dev libgl1-mesa-dev
           
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
 
       - name: Build Engine
-        run: cmake --build build -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" -- -j$(nproc)
+        run: cmake --build build -- -j$(nproc)
       
   build:
     name: ${{ matrix.os }} ${{ matrix.compiler }} (${{ matrix.config }})
@@ -35,11 +35,11 @@ jobs:
         config: [Debug, Release]
         compiler: [msvc, gcc, clang]
         exclude:
-        - os: Windows-latest
+        - os: windows-2025-vs2026
           compiler: gcc
-        - os: Windows-latest
+        - os: windows-2025-vs2026
           compiler: clang
-        - os: Ubuntu-latest
+        - os: ubuntu-24.04
           compiler: msvc
     steps:
       - uses: actions/checkout@v4
