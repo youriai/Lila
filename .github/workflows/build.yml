@@ -8,14 +8,39 @@ on:
   workflow_dispatch:
 
 jobs:
+  sanitize:
+    name: Sanzite
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+            
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ xorg-dev libgl1-mesa-dev
+          
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      - name: Build Engine
+        run: cmake --build build -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" -- -j$(nproc)
+      
   build:
-    name: ${{ matrix.os }} (${{ matrix.config }})
+    name: ${{ matrix.os }} ${{ matrix.compiler }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [Ubuntu-latest, Windows-latest]
+        os: [ubuntu-24.04, windows-2025-vs2026]
         config: [Debug, Release]
+        compiler: [msvc, gcc, clang]
+        exclude:
+        - os: Windows-latest
+          compiler: gcc
+        - os: Windows-latest
+          compiler: clang
+        - os: Ubuntu-latest
+          compiler: msvc
     steps:
       - uses: actions/checkout@v4
 
@@ -23,10 +48,17 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ xorg-dev libgl1-mesa-dev
-          echo "CC=gcc-14" >> $GITHUB_ENV
-          echo "CXX=g++-14" >> $GITHUB_ENV
-
+          sudo apt-get install -y xorg-dev libgl1-mesa-dev
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          else
+            sudo apt-get install -y g++
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          fi
+          
       - name: Configure CMake
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DSTRICT_MODE=ON
 
@@ -37,3 +69,9 @@ jobs:
       - name: Build Engine (Windows)
         if: runner.os == 'Windows'
         run: cmake --build build --config ${{ matrix.config }} -- /m
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.config }}
+          path: build/
