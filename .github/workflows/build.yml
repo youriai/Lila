@@ -9,7 +9,7 @@ on:
 
 jobs:
   sanitize:
-    name: sanitize
+    name: Sanitize
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -17,10 +17,10 @@ jobs:
       - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++ xorg-dev libgl1-mesa-dev
+          sudo apt-get install -y g++-14 xorg-dev libgl1-mesa-dev
           
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
 
       - name: Build Engine
         run: cmake --build build -- -j$(nproc)
@@ -28,6 +28,7 @@ jobs:
   build:
     name: ${{ matrix.os }} ${{ matrix.compiler }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
+    needs: sanitize
     strategy:
       fail-fast: false
       matrix:
@@ -54,7 +55,7 @@ jobs:
             echo "CC=clang" >> $GITHUB_ENV
             echo "CXX=clang++" >> $GITHUB_ENV
           else
-            sudo apt-get install -y g++
+            sudo apt-get install -y g++-14
             echo "CC=gcc" >> $GITHUB_ENV
             echo "CXX=g++" >> $GITHUB_ENV
           fi
