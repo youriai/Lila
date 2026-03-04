@@ -9,7 +9,7 @@ on:
 
 jobs:
   sanitize:
-    name: Sanitize
+    name: Sanitize Check
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -24,29 +24,38 @@ jobs:
 
       - name: Build Engine
         run: cmake --build build -- -j$(nproc)
-      
-  build:
-    name: ${{ matrix.os }} ${{ matrix.compiler }} (${{ matrix.config }})
+        
+  build-windows:
+    name: ${{ matrix.os }} MSVC (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
     needs: sanitize
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025-vs2026]
+        os: [ windows-2022, windows-2025-vs2026 ]
         config: [Debug, Release]
-        compiler: [msvc, gcc, clang]
-        exclude:
-        - os: windows-2025-vs2026
-          compiler: gcc
-        - os: windows-2025-vs2026
-          compiler: clang
-        - os: ubuntu-24.04
-          compiler: msvc
+    steps:
+      - uses: actions/checkout@v4
+    
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DSTRICT_MODE=ON
+        
+      - name: Build Engine
+        run: cmake --build build --config ${{ matrix.config }} -- /m
+        
+  build-linux:
+    name: ubuntu-24.04 ${{ matrix.compiler }} (${{ matrix.config }})
+    runs-on: ubuntu-24.04
+    needs: sanitize
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+        compiler: [gcc, clang]
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y xorg-dev libgl1-mesa-dev
@@ -63,16 +72,12 @@ jobs:
       - name: Configure CMake
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DSTRICT_MODE=ON
 
-      - name: Build Engine (Linux)
-        if: runner.os == 'Linux'
+      - name: Build Engine
         run: cmake --build build --config ${{ matrix.config }} -- -j$(nproc)
 
-      - name: Build Engine (Windows)
-        if: runner.os == 'Windows'
-        run: cmake --build build --config ${{ matrix.config }} -- /m
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.config }}
-          path: build/
+      # TODO: Uncomment this
+      # - name: Upload build artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.config }}
+      #     path: build/
